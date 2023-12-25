@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | ChatCompany</title>
+    <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+
+<body>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="phone">Phone:</label>
+    <input type="text" name="" id="phone">
+    <br><br>
+    <label id="token_label" class="display-n" for="token">code:</label>
+    <input class="display-n" type="text" id="token">
+        
+    <button class="" id="first_btn" type="button" onclick="sendAuthenticationToken()">send me</button>
+    <br><br>
+    <button class="display-n" id="second_btn" type="button" onclick="checkAuthenticationToken()">send me</button>
+</form>
+<script src="/static/js/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.0.4/js.cookie.min.js"></script>
+<script src="/static/js//custom.js"></script>
+
+</body>
+
+</html>

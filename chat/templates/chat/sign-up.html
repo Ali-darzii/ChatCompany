@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fa-IR" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>ورود  || نورون - قالب فروشگاهی NFT </title>
+    <meta name="robots" content="noindex, follow">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <meta name="theme-style-mode" content="1"> <!-- 0 == light, 1 == dark -->
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.png">
+    <!-- CSS
+    ============================================ -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/slick.css">
+    <link rel="stylesheet" href="/static/css/slick-theme.css">
+    <link rel="stylesheet" href="/static/css/nice-select.css">
+    <link rel="stylesheet" href="/static/css/feature.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+    <link rel="stylesheet" href="/static/css/odometer.css">
+
+    <!-- Style css -->
+    <link rel="stylesheet" href="/static/fonts/styles-fa-num/iran-yekan.css">
+    <link rel="stylesheet" href="/static/fonts/styles-fa-num/azarmehr.css">
+    <link rel="stylesheet" href="/static/css/rtl-style.css">
+</head>
+<body>
+
+<div class="login-area rn-section-gapTop">
+        <div class="container">
+            <div class="row g-5">
+                <div class=" offset-2 col-lg-4 col-md-6 ml_md--0 ml_sm--0 col-sm-12">
+                    <div class="form-wrapper-one">
+                        <h4>ثبت نام به سیستم</h4>
+                        <form>
+                            <div class="mb-5">
+                                <label for="username" class="form-label">اسم کاربری</label>
+                                <input type="email" id="username">
+                            </div>
+                            <div class="mb-5">
+                                <label for="name" class="form-label">نام و نام خانوادگی</label>
+                                <input type="text" id="name">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="phone-no" class="form-label">شماره تلفن</label>
+                                <input type="text" id="phone-no">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="role" class="form-label">نوع شغل</label>
+                                <input type="text" id="role">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="company" class="form-label"> کمپانی </label>
+                                <input type="text" id="company">
+                            </div>
+
+{#                            <div class="mb-5 rn-check-box">#}
+{#                                <input type="checkbox" class="rn-check-box-input" id="remind-me">#}
+{#                                <label class="rn-check-box-label" for="remind-me">نامه مرا به خاطر بسپار</label>#}
+{#                            </div>#}
+                            <button onclick="SignUpCheck()" type="button" class="btn btn-primary mr--15">ثبت نام</button>
+                            <a href="{% url 'login_page' %}" class="btn btn-primary-alta">ورود به سیستم</a>
+                            </form>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="social-share-media form-wrapper-one">
+                        <h6>روش دیگری برای ورود به سیستم</h6>
+                        <p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.
+                        </p>
+                        <button class="another-login login-facebook"> <img class="small-image" src="/static/images/icons/google.png" alt=""> <span>با گوگل وارد شوید</span> </button>
+                        <button class="another-login login-facebook"> <img class="small-image" src="/static/images/icons/facebook.png" alt=""> <span>با فیس بوک وارد شوید</span> </button>
+                        <button class="another-login login-twitter"> <img class="small-image" src="/static/images/icons/tweeter.png" alt=""> <span>با توییتر وارد شوید</span> </button>
+                        <button class="another-login login-linkedin"> <img class="small-image" src="/static/images/icons/linkedin.png" alt=""> <span>با لینکداین وارد شوید</span> </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="/static/js/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.0.4/js.cookie.min.js"></script>
+<script src="/static/js//custom.js"></script>
+</body>
+</html>
