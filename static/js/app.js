@@ -6,8 +6,6 @@ let clipButton = $('#clip-input');
 let userList = $('#user-list');
 let messageList = $('#messages');
 
-// function works in order
-
 $(document).ready(function () {
     updateUserList();
     updateGroupList();
@@ -38,7 +36,7 @@ $(document).ready(function () {
 });
 
 
-
+// Pv Chat
 
 function updateUserList() {
     /*
@@ -67,30 +65,6 @@ function updateUserList() {
 
 }
 
-
-function updateGroupList()  {
-    $.getJSON('api/v1/groups/', function (data) {
-        for (let i = 0; i < data.length; i++) {
-            const userItem = `<a class="list-group-item group">${data[i]['title']}</a>`;
-            $(userItem).appendTo('#user-list');
-        }
-        $('.group').click(function () {
-            userList.children('.active').removeClass('active');
-            let selected = event.target;
-            $(selected).addClass('active');
-            setCurrentRecipient(selected.text);
-        });
-    })
-}
-
-function disableInput() {
-    // we wait for client to click the user and enable!
-    chatInput.prop('disabled', true);
-    chatButton.prop('disabled', true);
-    clipButton.prop('disabled', true);
-
-}
-
 function setCurrentRecipient(username) {
     /*
     submit who is recipient to go fetch message data,
@@ -98,35 +72,8 @@ function setCurrentRecipient(username) {
     */
 
     currentRecipient = username;
-    console.log(currentRecipient);
     getConversation(currentRecipient);
     enableInput();
-}
-
-function getConversation(recipient) {
-    /*
-    get api to fetch get old messages
-    delete all messages for page refresh(duplicate)
-    for any messages we send it to drawMessage function
-
-    */
-    $.getJSON(`/api/v1/message/?target=${recipient}`, function (data) {
-        messageList.children('.message').remove();
-        for (let i = data['results'].length - 1; i >= 0; i--) {
-            drawMessage(data['results'][i]);
-        }
-        messageList.animate({scrollTop: messageList.prop('scrollHeight')});
-    });
-
-}
-
-function enableInput() {
-    //for fetching message we can't send message(for message order)
-
-    chatInput.prop('disabled', false);
-    chatButton.prop('disabled', false);
-    clipButton.prop('disabled', false);
-    chatInput.focus();
 }
 
 function getMessageById(message) {
@@ -184,6 +131,22 @@ function sendMessage(recipient, body) {
         alert('Error! Check console!');
     });
 }
+function getConversation(recipient) {
+    /*
+    get api to fetch get old messages
+    delete all messages for page refresh(duplicate)
+    for any messages we send it to drawMessage function
+
+    */
+    $.getJSON(`/api/v1/message/?target=${recipient}`, function (data) {
+        messageList.children('.message').remove();
+        for (let i = data['results'].length - 1; i >= 0; i--) {
+            drawMessage(data['results'][i]);
+        }
+        messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+    });
+}
+
 
 function drawMessage(message) {
     /*
@@ -207,9 +170,74 @@ function drawMessage(message) {
 }
 
 
+// Group Chat
+function updateGroupList()  {
+    $.getJSON('api/v1/groups/', function (data) {
+        for (let i = 0; i < data.length; i++) {
+            const userItem = `<a onclick="groupClick(this,${data[i]['id']})" class="list-group-item group">${data[i]['title']}</a>`;
+            $(userItem).appendTo('#user-list');
+        }
+    })
+}
+
+
+function groupClick(clicked,id){
+    userList.children('.active').removeClass('active');
+    clicked.classList.add('active');
+    currentGroup = id;
+    getGroupConversation();
+    enableInput();
+
+}
+function getGroupConversation(){
+    $.getJSON(`/api/v1/Group-message/?target=${currentGroup}`, function (data) {
+        messageList.children('.message').remove();
+
+        for (let i = data.length - 1; i >= 0; i--) {
+            drawGroupMessage(data[i]);
+        }
+        messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+    });
+}
+function drawGroupMessage(message){
+        /*
+    we check the message is for the user or recipient, and
+    we select the position and append it ti messages
+    we get time stamp, and we put it in Date format in js
+    */
+    let position = 'left';
+    const date = new Date(message.timestamp);
+    if (message.user.username === currentUser) position = 'right';
+    const messageItem = `
+            <li class="message ${position}">
+                <div class="avatar">${message.user.username}</div>
+                    <div class="text_wrapper">
+                        <div class="text">${message.body}<br>
+                            <span class="small">${date}</span>
+                    </div>
+                </div>
+            </li>`;
+    $(messageItem).appendTo('#messages');
+}
 
 
 
 
+// Universal
+function disableInput() {
+    // we wait for client to click the user and enable!
+    chatInput.prop('disabled', true);
+    chatButton.prop('disabled', true);
+    clipButton.prop('disabled', true);
 
+}
+
+function enableInput() {
+    //for fetching message we can't send message(for message order)
+
+    chatInput.prop('disabled', false);
+    chatButton.prop('disabled', false);
+    clipButton.prop('disabled', false);
+    chatInput.focus();
+}
 

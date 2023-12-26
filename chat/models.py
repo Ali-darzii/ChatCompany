@@ -88,7 +88,7 @@ class Groups(models.Model):
 class GroupMessage(models.Model):
     body = models.TextField(db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True, editable=False, db_index=True)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     group = models.ForeignKey(Groups, on_delete=models.CASCADE, db_index=True)
 
     def __str__(self):

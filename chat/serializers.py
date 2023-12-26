@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from .models import Message, User, Groups
+from .models import Message, User, Groups, GroupMessage
 from rest_framework.serializers import ModelSerializer, CharField
 
 
@@ -26,6 +26,16 @@ class UserSerializer(ModelSerializer):
 
 
 class GroupsSerializer(ModelSerializer):
+    users = UserSerializer(read_only=True, many=True)
+
     class Meta:
         model = Groups
+        fields = "__all__"
+
+
+class GroupMessageSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = GroupMessage
         fields = "__all__"

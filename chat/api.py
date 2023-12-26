@@ -4,12 +4,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Message, Groups
+from .models import User, Message, Groups, GroupMessage
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import SessionAuthentication
 from ChatCompany import settings
-from chat.serializers import MessageSerializer, UserSerializer, GroupsSerializer
+from chat.serializers import MessageSerializer, UserSerializer, GroupsSerializer, GroupMessageSerializer
 from rest_framework import status
 
 
@@ -71,3 +71,15 @@ class GroupsApiView(APIView):
         user: User = User.objects.get(pk=request.user.id).group_users.all()
         groups = GroupsSerializer(user, many=True)
         return Response(groups.data, status.HTTP_200_OK)
+
+
+class GroupMessagesApiView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: HttpRequest):
+        target = self.request.query_params.get("target", None)
+        if target is not None:
+            group_message: GroupMessage = GroupMessage.objects.filter(group_id=target)
+            messages = GroupMessageSerializer(group_message, many=True)
+            return Response(messages.data, status.HTTP_200_OK)
