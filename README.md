@@ -51,7 +51,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4.Mysql promp:
+4.Mysql prompt:
 
 ``` sql
 CREATE DATABASE chatCompany CHARACTER SET utf8;
@@ -101,7 +101,7 @@ venv/Script/activate
 pip install -r requirements.txt
 ```
 
-4.Mysql promp:
+4.Mysql prompt:
 
 ``` sql
 CREATE DATABASE chatCompany CHARACTER SET utf8;
