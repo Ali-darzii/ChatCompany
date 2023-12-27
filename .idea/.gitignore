@@ -18,6 +18,7 @@ target/
 .env
 .venv
 env/
+/venv/
 venv/
 ENV/
 env.bak/
