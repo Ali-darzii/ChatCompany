@@ -95,10 +95,26 @@ class GroupMessage(models.Model):
         return self.body
 
     def notify_ws_clients(self):
-        pass
+        """
+
+        Inform client there is new message
+
+        """
+        notification = {
+            "type": "send_message",
+            "message": [self.group.id, self.body, str(self.timestamp), self.user.username],
+
+        }
+        channel_layer = get_channel_layer()
+        users = self.group.users.all()
+        for user in users:
+            async_to_sync(channel_layer.group_send)(str(user.id), notification)
 
     def save(self, *args, **kwargs):
+        self.body = self.body.strip()
         super(GroupMessage, self).save(*args, **kwargs)
+        if self.id is not None:
+            self.notify_ws_clients()
 
     class Meta:
         db_table = "GroupMessage_DB"

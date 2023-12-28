@@ -59,7 +59,7 @@ class UserViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         user: User = get_object_or_404(User, pk=request.user.id)
         self.queryset = self.queryset.filter(company_id=user.company_id)
-        self.queryset = self.queryset.exclude(pk=user.id)
+        self.queryset = self.queryset.exclude(pk=user.id).distinct()
         return super(UserViewSet, self).list(request, *args, **kwargs)
 
 
@@ -83,3 +83,13 @@ class GroupMessagesApiView(APIView):
             group_message: GroupMessage = GroupMessage.objects.filter(group_id=target)
             messages = GroupMessageSerializer(group_message, many=True)
             return Response(messages.data, status.HTTP_200_OK)
+
+    def post(self, request: HttpRequest):
+        body = request.POST.get("body", None)
+        group_id = request.POST.get("group", None)
+        group_message: GroupMessage = GroupMessage.objects.create(body=body, group_id=group_id,
+                                                                  user_id=self.request.user.id)
+        # messages = GroupMessageSerializer(group_message, many=True)
+        return Response("Created successfully", status.HTTP_201_CREATED)
+
+

@@ -39,3 +39,4 @@ class GroupMessageSerializer(ModelSerializer):
     class Meta:
         model = GroupMessage
         fields = "__all__"
+

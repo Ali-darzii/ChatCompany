@@ -25,14 +25,18 @@ $(document).ready(function () {
 
     chatButton.click(function () {
         if (chatInput.val().length > 0) {
-            sendMessage(currentRecipient, chatInput.val());
+            if(currentRecipient !== ''){
+                sendMessage(currentRecipient, chatInput.val());
+            }else {
+                sendGroupMessage(currentGroup, chatInput.val());
+            }
+
             chatInput.val('');
         }
     });
     socket.onmessage = function (e) {
         getMessageById(e.data);
     };
-    console.log(socket);
 });
 
 
@@ -57,6 +61,7 @@ function updateUserList() {
             userList.children('.active').removeClass('active');
             let selected = event.target;
             $(selected).addClass('active');
+            currentGroup = '';
             setCurrentRecipient(selected.text);
 
         });
@@ -89,8 +94,9 @@ function getMessageById(message) {
     in the chat, so we send him notification
 
     */
-    id = JSON.parse(message).message
-    $.getJSON(`/api/v1/message/${id}/`, function (data) {
+    message = JSON.parse(message).message;
+    if(message.length === 2){
+        $.getJSON(`/api/v1/message/${message}/`, function (data) {
         if (data.user === currentRecipient ||
             (data.recipient === currentRecipient && data.user === currentUser)) {
             drawMessage(data);
@@ -118,9 +124,42 @@ function getMessageById(message) {
         }else {
             console.log("notification error from browser");
         }
-
-        messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+    messageList.animate({scrollTop: messageList.prop('scrollHeight')});
     });
+
+    }if(message.length ===4 ){
+        if(message[0] === currentGroup) {
+            const dictMessage = {
+                'body': message[1],
+                'timestamp': message[2],
+                'user': {
+                    'username': message[3],
+                },
+            }
+            drawGroupMessage(dictMessage);
+            messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+        }else {
+                if (!("Notification" in window)) {
+                    console.log("This browser does not support desktop notification");
+                }
+
+                // Let's check whether notification permissions have already been granted
+                else if (Notification.permission === "granted") {
+                    // If it's okay let's create a notification
+                    var notification = new Notification(message[[3]] + " : " + message[1]);
+                }
+
+                else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(function (permission) {
+                        // If the user accepts, let's create a notification
+                        if (permission === "granted") {
+                            var notification = new Notification("Hi there!");
+                        }
+                    });
+                }
+        }
+    }
+
 }
 
 function sendMessage(recipient, body) {
@@ -184,6 +223,7 @@ function updateGroupList()  {
 function groupClick(clicked,id){
     userList.children('.active').removeClass('active');
     clicked.classList.add('active');
+    currentRecipient = '';
     currentGroup = id;
     getGroupConversation();
     enableInput();
@@ -219,7 +259,14 @@ function drawGroupMessage(message){
             </li>`;
     $(messageItem).appendTo('#messages');
 }
-
+function sendGroupMessage(group,body){
+    $.post('/api/v1/Group-message/', {
+        group: group,
+        body: body
+    }).fail(function () {
+        alert('Error! Check console!');
+    });
+}
 
 
 
