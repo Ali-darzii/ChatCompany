@@ -212,6 +212,7 @@ class Phone(models.Model):
 class LoginVisit(models.Model):
     ip = models.CharField(max_length=30)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, related_name="index_visit")
+    timestamp = models.DateTimeField(auto_now_add=True, editable=False)
 
     def __str__(self):
         if str(self.user) != '':

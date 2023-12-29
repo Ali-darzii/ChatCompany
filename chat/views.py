@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, JsonResponse
@@ -124,6 +126,7 @@ def auth_token_check(request: HttpRequest):
     """
     token = request.POST.get("token")
     phone_no = str(request.POST.get("phone_no"))
+
     try:
         try:
             phone_validator(phone_no)
@@ -140,6 +143,12 @@ def auth_token_check(request: HttpRequest):
         user = User.objects.get(pk=phone.user.id)
         user_ip = get_client_ip(request)
         LoginVisit.objects.create(ip=user_ip, user_id=user.id)
+        minute_ago = timezone.now() - timedelta(minutes=1)
+        login_check: LoginVisit = LoginVisit.objects.filter(ip=user_ip, user_id=user.id,timestamp__gt=minute_ago)
+        if login_check.count() > 3:
+            return JsonResponse({
+                "status": "login_ban"
+            })
     except User.DoesNotExist:
         return JsonResponse({
             "status": "user_not_found"
