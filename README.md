@@ -52,7 +52,7 @@ python -m venv vnev
 ```zsh title="Terminal"
 source venv/bin/activate
 ```
-3. install requirements in virtual
+3.install requirements in virtual
 
 ```zsh title="Terminal"
 pip install -r requirements.txt
@@ -77,7 +77,7 @@ DATABASES = {
     }
 }
 ```
-6. migrate to DB:
+6.migrate to DB:
 ```zsh title="Terminal"
 python manage.py migrate
 ```
@@ -102,7 +102,7 @@ python -m venv vnev
 ```zsh title="Terminal"
 venv/Script/activate
 ```
-3. install requirements in virtual
+3.install requirements in virtual
 
 ```zsh title="Terminal"
 pip install -r requirements.txt
@@ -127,7 +127,7 @@ DATABASES = {
     }
 }
 ```
-6. migrate to DB:
+6.migrate to DB:
 ```zsh title="Terminal"
 python manage.py migrate
 ```
