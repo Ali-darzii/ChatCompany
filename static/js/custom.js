@@ -19,6 +19,7 @@ function sendAuthenticationToken() {
                 label_token.classList.remove("display-n");
                 first_btn.classList.add("display-n");
                 second_btn.classList.remove("display-n");
+                alert(res.token);
             }
         },
         error:function (){

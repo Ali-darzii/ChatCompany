@@ -93,3 +93,15 @@ class GroupMessagesApiView(APIView):
         return Response("Created successfully", status.HTTP_201_CREATED)
 
 
+class TestAPI(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: HttpRequest):
+        user = get_object_or_404(User, pk=request.user.id)
+        users = User.objects.filter(company_id=user.company_id).exclude(id=user.id)
+        users_serializer = UserSerializer(users, many=True)
+        groups: User = User.objects.get(pk=request.user.id).group_users.all()
+        groups_serializer = GroupsSerializer(groups, many=True)
+        serializer = users_serializer.data + groups_serializer.data
+        return Response(serializer, status.HTTP_200_OK)
