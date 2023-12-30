@@ -11,9 +11,16 @@ The System is Designed for Companies that need exclusive communicade</pre>
 
 ## 🤝 Requirements
 0. redis
-1. Mysql
-2. let's make sure you have the following installed(it's only needed in linux):
 
+1. Mysql
+
+2. install virtualenv
+  ```bash
+  pip install virtualenv
+  ```
+
+
+3. let's make sure you have the following installed(it's only needed in linux):
 
 - in Debain:
   ```bash
