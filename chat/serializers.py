@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
+
 from .models import Message, User, Groups, GroupMessage
 from rest_framework.serializers import ModelSerializer, CharField
 
@@ -6,10 +8,11 @@ from rest_framework.serializers import ModelSerializer, CharField
 class MessageSerializer(ModelSerializer):
     class Meta:
         model = Message
-        fields = ["pk", "user", "recipient", "timestamp", "body"]
+        fields = ["pk", "user", "recipient", "timestamp", "body", "avatar"]
 
     user = CharField(source="user.username", read_only=True)
     recipient = CharField(source="recipient.username")
+    avatar = CharField(source="user.avatar")
 
     def create(self, validated_data):
         user = self.context["request"].user
@@ -19,10 +22,11 @@ class MessageSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    avatar = serializers.ImageField(read_only=True)
+
     class Meta:
         model = User
-        fields = ["username"]
-        # todo: we must get the all fields so users can see their profiles
+        fields = ["username", "avatar"]
 
 
 class GroupsSerializer(ModelSerializer):
@@ -30,13 +34,12 @@ class GroupsSerializer(ModelSerializer):
 
     class Meta:
         model = Groups
-        fields = "__all__"
+        exclude = ["admin", "description"]
 
 
 class GroupMessageSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
+    avatar = CharField(source="user.avatar", read_only=True)
 
     class Meta:
         model = GroupMessage
-        fields = "__all__"
-
+        fields = ["body", "user", "group", "timestamp", "avatar"]

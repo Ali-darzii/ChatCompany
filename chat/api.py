@@ -1,10 +1,10 @@
 from django.db.models import Q
-from django.http import HttpRequest
+from django.http import HttpRequest, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Message, Groups, GroupMessage
+from .models import User, Message, GroupMessage
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import SessionAuthentication
@@ -83,6 +83,7 @@ class GroupMessagesApiView(APIView):
             group_message: GroupMessage = GroupMessage.objects.filter(group_id=target)
             messages = GroupMessageSerializer(group_message, many=True)
             return Response(messages.data, status.HTTP_200_OK)
+        raise Http404
 
     def post(self, request: HttpRequest):
         body = request.POST.get("body", None)
@@ -92,16 +93,3 @@ class GroupMessagesApiView(APIView):
         # messages = GroupMessageSerializer(group_message, many=True)
         return Response("Created successfully", status.HTTP_201_CREATED)
 
-
-class TestAPI(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request: HttpRequest):
-        user = get_object_or_404(User, pk=request.user.id)
-        users = User.objects.filter(company_id=user.company_id).exclude(id=user.id)
-        users_serializer = UserSerializer(users, many=True)
-        groups: User = User.objects.get(pk=request.user.id).group_users.all()
-        groups_serializer = GroupsSerializer(groups, many=True)
-        serializer = users_serializer.data + groups_serializer.data
-        return Response(serializer, status.HTTP_200_OK)

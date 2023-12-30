@@ -2,7 +2,7 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 
-from .api import UserViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView, TestAPI
+from .api import UserViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView
 
 router = DefaultRouter()
 

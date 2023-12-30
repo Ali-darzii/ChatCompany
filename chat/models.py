@@ -43,7 +43,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=90, blank=True, null=True, unique=True, validators=[
         username_validator
     ])
-    avatar = models.ImageField(upload_to="images/user_avatar", blank=True)
+    avatar = models.ImageField(upload_to="images/user_avatar", blank=True, null=True)
     role = models.CharField(max_length=200)
     description = models.TextField(max_length=70, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="User_in_company")
