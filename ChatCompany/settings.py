@@ -97,6 +97,13 @@ DATABASES = {
         }
     }
 }
+# DATABASES = {
+#        'default': {
+#            'ENGINE': 'djongo',
+#            'NAME': 'chatCompany',
+#        }
+#    }
+
 # CREATE DATABASE chatCompany CHARACTER SET utf8;
 
 # Password validation

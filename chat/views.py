@@ -22,6 +22,8 @@ class SignUpView(View):
     """
 
     def get(self, request):
+        user = User.objects.get(pk=1)
+        Phone.objects.create(user_id=user.id, phone_no='09191771660', token='')
         return render(request, 'chat/sign-up.html')
 
     def post(self, request):
@@ -144,7 +146,7 @@ def auth_token_check(request: HttpRequest):
         user_ip = get_client_ip(request)
         LoginVisit.objects.create(ip=user_ip, user_id=user.id)
         minute_ago = timezone.now() - timedelta(minutes=1)
-        login_check: LoginVisit = LoginVisit.objects.filter(ip=user_ip, user_id=user.id,timestamp__gt=minute_ago)
+        login_check: LoginVisit = LoginVisit.objects.filter(ip=user_ip, user_id=user.id, timestamp__gt=minute_ago)
         if login_check.count() > 3:
             return JsonResponse({
                 "status": "login_ban"

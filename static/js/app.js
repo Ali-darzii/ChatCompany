@@ -127,16 +127,17 @@ function getMessageById(message) {
     messageList.animate({scrollTop: messageList.prop('scrollHeight')});
     });
 
-    }if(message.length ===4 ){
+    }if(message.length ===6 ){
         if(message[0] === currentGroup) {
+            console.log('wer');
             const dictMessage = {
                 'body': message[1],
                 'timestamp': message[2],
-                'user': {
-                    'username': message[3],
-                },
+                'user': message[3],
+                'picture':message[4],
+                'avatar':message[5],
             }
-            drawGroupMessage(dictMessage);
+            drawMessage(dictMessage);
             messageList.animate({scrollTop: messageList.prop('scrollHeight')});
         }else {
                 if (!("Notification" in window)) {
@@ -193,6 +194,7 @@ function drawMessage(message) {
     we select the position and append it ti messages
     we get time stamp, and we put it in Date format in js
     */
+    console.log(message);
     let position = 'left';
     const date = new Date(message.timestamp);
     if (message.user === currentUser) position = 'right';
@@ -201,7 +203,7 @@ function drawMessage(message) {
                 <div class="avatar">${message.user}</div>
                     <div class="text_wrapper">
                         <div class="text">${message.body}<br>
-                            <span class="small">${date.getHours()}</span>
+                            <span class="small">${date.getHours()}:${date.getMinutes()}</span>
                     </div>
                 </div>
             </li>`;
@@ -234,31 +236,12 @@ function getGroupConversation(){
         messageList.children('.message').remove();
 
         for (let i = data.length - 1; i >= 0; i--) {
-            drawGroupMessage(data[i]);
+            drawMessage(data[i]);
         }
         messageList.animate({scrollTop: messageList.prop('scrollHeight')});
     });
 }
-function drawGroupMessage(message){
-        /*
-    we check the message is for the user or recipient, and
-    we select the position and append it ti messages
-    we get time stamp, and we put it in Date format in js
-    */
-    let position = 'left';
-    const date = new Date(message.timestamp);
-    if (message.user.username === currentUser) position = 'right';
-    const messageItem = `
-            <li class="message ${position}">
-                <div class="avatar">${message.user.username}</div>
-                    <div class="text_wrapper">
-                        <div class="text">${message.body}<br>
-                            <span class="small">${date}</span>
-                    </div>
-                </div>
-            </li>`;
-    $(messageItem).appendTo('#messages');
-}
+
 function sendGroupMessage(group,body){
     $.post('/api/v1/Group-message/', {
         group: group,

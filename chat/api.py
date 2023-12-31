@@ -88,8 +88,6 @@ class GroupMessagesApiView(APIView):
     def post(self, request: HttpRequest):
         body = request.POST.get("body", None)
         group_id = request.POST.get("group", None)
-        group_message: GroupMessage = GroupMessage.objects.create(body=body, group_id=group_id,
-                                                                  user_id=self.request.user.id)
+        GroupMessage.objects.create(body=body, group_id=group_id, user_id=self.request.user.id)
         # messages = GroupMessageSerializer(group_message, many=True)
         return Response("Created successfully", status.HTTP_201_CREATED)
-

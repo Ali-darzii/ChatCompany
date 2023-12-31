@@ -12,7 +12,7 @@ class MessageSerializer(ModelSerializer):
 
     user = CharField(source="user.username", read_only=True)
     recipient = CharField(source="recipient.username")
-    avatar = CharField(source="user.avatar")
+    avatar = CharField(source="user.avatar", read_only=True)
 
     def create(self, validated_data):
         user = self.context["request"].user
@@ -39,6 +39,7 @@ class GroupsSerializer(ModelSerializer):
 
 class GroupMessageSerializer(ModelSerializer):
     avatar = CharField(source="user.avatar", read_only=True)
+    user = CharField(source="user.username", read_only=True)
 
     class Meta:
         model = GroupMessage

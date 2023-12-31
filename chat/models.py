@@ -103,8 +103,13 @@ class GroupMessage(models.Model):
         """
         notification = {
             "type": "send_message",
-            "message": [self.group.id, self.body, str(self.timestamp), self.user.username],
-
+            "message": [self.group.id,
+                        self.body,
+                        str(self.timestamp),
+                        self.user.username,
+                        str(self.picture),
+                        str(self.user.avatar)
+                        ],
         }
         channel_layer = get_channel_layer()
         users = self.group.users.all()
