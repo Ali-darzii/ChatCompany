@@ -90,6 +90,7 @@ class GroupMessage(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, editable=False, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     group = models.ForeignKey(Groups, on_delete=models.CASCADE, db_index=True)
+    picture = models.ImageField(upload_to='images/group_message_picture', blank=True, null=True, db_index=True)
 
     def __str__(self):
         return self.body
@@ -126,6 +127,7 @@ class Message(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_user", db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
     body = models.TextField()
+    picture = models.ImageField(upload_to="images/message_picture", null=True, blank=True)
 
     def __str__(self):
         return self.id
