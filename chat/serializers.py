@@ -8,7 +8,7 @@ from rest_framework.serializers import ModelSerializer, CharField
 class MessageSerializer(ModelSerializer):
     class Meta:
         model = Message
-        fields = ["pk", "user", "recipient", "timestamp", "body", "avatar"]
+        fields = ["pk", "user", "recipient", "timestamp", "body", "avatar", "picture"]
 
     user = CharField(source="user.username", read_only=True)
     recipient = CharField(source="recipient.username")
@@ -42,4 +42,4 @@ class GroupMessageSerializer(ModelSerializer):
 
     class Meta:
         model = GroupMessage
-        fields = ["body", "user", "group", "timestamp", "avatar"]
+        fields = ["body", "user", "group", "timestamp", "avatar", "picture"]
