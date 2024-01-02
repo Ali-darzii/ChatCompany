@@ -2,7 +2,8 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 
-from .api import UserViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView, SetAuthTokenAPI, AuthTokenCheckAPI
+from .api import (UserViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView, SetAuthTokenAPI, AuthTokenCheckAPI,
+                  MakeGroupAPI)
 
 router = DefaultRouter()
 
@@ -17,7 +18,7 @@ urlpatterns = [
     path("api/v1/check-token/", AuthTokenCheckAPI.as_view(), name="auth_token_check"),
 
     path("", views.Room.as_view(), name="home_page"),
-    path('make-groupe', views.MakeGroupView.as_view(), name='make-group'),
+    path('make-groupe', MakeGroupAPI.as_view(), name='make-group'),
     path("login/", views.Login.as_view(), name="login_page"),
     path("sign-up/", views.SignUpView.as_view(), name="sign_up_page"),
     path("logout/", views.logout_view, name="logout"),

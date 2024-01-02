@@ -85,9 +85,6 @@ class Room(TemplateView):
         return context
 
 
-
-
-
 def logout_view(request: HttpRequest):
     logout(request)
     return redirect(reverse('login_page'))

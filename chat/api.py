@@ -99,8 +99,6 @@ class GroupMessagesApiView(APIView):
 
 
 class SetAuthTokenAPI(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def post(self, request: HttpRequest):
         """
@@ -136,8 +134,6 @@ class SetAuthTokenAPI(APIView):
 
 
 class AuthTokenCheckAPI(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def post(self, request: HttpRequest):
         """
