@@ -3,6 +3,8 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, JsonResponse
+from rest_framework.views import APIView
+
 from .models import Company, User, Phone, LoginVisit
 from django.utils import timezone
 from django.contrib.auth import login, logout
@@ -83,94 +85,7 @@ class Room(TemplateView):
         return context
 
 
-def set_auth_token(request: HttpRequest):
-    """
-    sending auth token function:
-    checking phone number length is 11 and must be number,
-    number must exist in DB,
-    generating auth token and expiration time of token
 
-    """
-    phone_no = str(request.POST.get("phone_no"))
-    if len(phone_no) != 11:
-        return JsonResponse({
-            "status": "length_issue"
-        })
-    if not phone_no.isdigit():
-        return JsonResponse({
-            "status": "not_number"
-        })
-    try:
-        phone = Phone.objects.get(phone_no=phone_no)
-    except Phone.DoesNotExist:
-        return JsonResponse({
-            "status": "not_found"
-        })
-    phone.set_tk()
-    phone.set_expiration_time()
-    phone.save()
-    # todo: send_api_sms
-    return JsonResponse({
-        "status": "success",
-        "token": phone.token
-    })
-
-
-def auth_token_check(request: HttpRequest):
-    """
-    checking auth_token function:
-    checking phone number length is 11 and must be number
-    checking token expiration time
-    checking same token as DB
-    and submit ind DB that user tried to log
-    and set token and expiration time to null or blank,
-    and finally we log the user
-    """
-    token = request.POST.get("token")
-    phone_no = str(request.POST.get("phone_no"))
-
-    try:
-        try:
-            phone_validator(phone_no)
-        except ValidationError as e:
-            return JsonResponse({
-                "status": e.message
-            })
-        phone: Phone = Phone.objects.get(phone_no=phone_no)
-    except Phone.DoesNotExist:
-        return JsonResponse({
-            "status": "phone_not_found"
-        })
-    try:
-        user = User.objects.get(pk=phone.user.id)
-        user_ip = get_client_ip(request)
-        LoginVisit.objects.create(ip=user_ip, user_id=user.id)
-        minute_ago = timezone.now() - timedelta(minutes=1)
-        login_check: LoginVisit = LoginVisit.objects.filter(ip=user_ip, user_id=user.id, timestamp__gt=minute_ago)
-        if login_check.count() > 3:
-            return JsonResponse({
-                "status": "login_ban"
-            })
-    except User.DoesNotExist:
-        return JsonResponse({
-            "status": "user_not_found"
-        })
-    if timezone.now() > phone.expiration_time:
-        return JsonResponse({
-            "status": "times_up"
-        })
-    if token != phone.token:
-        return JsonResponse({
-            "status": "wrong_token"
-        })
-
-    phone.token = ""
-    phone.expiration_time = None
-    phone.save()
-    login(request, user)
-    return JsonResponse({
-        "status": "success"
-    })
 
 
 def logout_view(request: HttpRequest):

@@ -136,26 +136,26 @@ function getGroupMessage(data){
         drawMessage(data);
         messageList.animate({scrollTop: messageList.prop('scrollHeight')});
     }
-    // else {
-    //         if (!("Notification" in window)) {
-    //             console.log("This browser does not support desktop notification");
-    //         }
-    //
-    //         // Let's check whether notification permissions have already been granted
-    //         else if (Notification.permission === "granted") {
-    //             // If it's okay let's create a notification
-    //             var notification = new Notification(data.user + " : " + data.body);
-    //         }
-    //
-    //         else if (Notification.permission !== "denied") {
-    //             Notification.requestPermission().then(function (permission) {
-    //                 // If the user accepts, let's create a notification
-    //                 if (permission === "granted") {
-    //                     var notification = new Notification("Hi there!");
-    //                 }
-    //             });
-    //         }
-    // }
+    else {
+            if (!("Notification" in window)) {
+                console.log("This browser does not support desktop notification");
+            }
+
+            // Let's check whether notification permissions have already been granted
+            else if (Notification.permission === "granted") {
+                // If it's okay let's create a notification
+                var notification = new Notification(data.user + " : " + data.body);
+            }
+
+            else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(function (permission) {
+                    // If the user accepts, let's create a notification
+                    if (permission === "granted") {
+                        var notification = new Notification("Hi there!");
+                    }
+                });
+            }
+    }
 }
 function sendMessage(recipient, body) {
     $.post('/api/v1/message/', {

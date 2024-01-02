@@ -5,7 +5,7 @@ function sendAuthenticationToken() {
     const first_btn = document.getElementById("first_btn");
     const second_btn = document.getElementById("second_btn");
     $.ajax({
-        url: "/send-token/",
+        url: "/api/v1/send-token/",
         data: {phone_no: phone},
         datatype: "json",
         method: "POST",
@@ -33,7 +33,7 @@ function checkAuthenticationToken() {
     const tokenInput = document.getElementById("token").value;
 
     $.ajax({
-        url: "/check-token/",
+        url: "/api/v1/check-token/",
         data: {phone_no: phone, token: tokenInput},
         datatype: "json",
         method: "POST",
