@@ -35,7 +35,14 @@ $(document).ready(function () {
         }
     });
     socket.onmessage = function (e) {
-        getMessageById(e.data);
+        const data = JSON.parse(e.data).message;
+        if (data.state === 'message'){
+            getMessage(data);
+        }else if (data.state === 'groupMessage'){
+            getGroupMessage(data);
+        }
+
+
     };
 });
 
@@ -81,8 +88,9 @@ function setCurrentRecipient(username) {
     enableInput();
 }
 
-function getMessageById(message) {
-    /*
+
+function getMessage(data){
+        /*
 
     important: we can send the message directly, but we can't
     specify the sender user and recipient
@@ -94,10 +102,7 @@ function getMessageById(message) {
     in the chat, so we send him notification
 
     */
-    message = JSON.parse(message).message;
-    if(message.length === 2){
-        $.getJSON(`/api/v1/message/${message}/`, function (data) {
-        if (data.user === currentRecipient ||
+     if (data.user === currentRecipient ||
             (data.recipient === currentRecipient && data.user === currentUser)) {
             drawMessage(data);
         }
@@ -125,44 +130,33 @@ function getMessageById(message) {
             console.log("notification error from browser");
         }
     messageList.animate({scrollTop: messageList.prop('scrollHeight')});
-    });
-
-    }if(message.length ===6 ){
-        if(message[0] === currentGroup) {
-            console.log('wer');
-            const dictMessage = {
-                'body': message[1],
-                'timestamp': message[2],
-                'user': message[3],
-                'picture':message[4],
-                'avatar':message[5],
-            }
-            drawMessage(dictMessage);
-            messageList.animate({scrollTop: messageList.prop('scrollHeight')});
-        }else {
-                if (!("Notification" in window)) {
-                    console.log("This browser does not support desktop notification");
-                }
-
-                // Let's check whether notification permissions have already been granted
-                else if (Notification.permission === "granted") {
-                    // If it's okay let's create a notification
-                    var notification = new Notification(message[[3]] + " : " + message[1]);
-                }
-
-                else if (Notification.permission !== "denied") {
-                    Notification.requestPermission().then(function (permission) {
-                        // If the user accepts, let's create a notification
-                        if (permission === "granted") {
-                            var notification = new Notification("Hi there!");
-                        }
-                    });
-                }
-        }
-    }
-
 }
-
+function getGroupMessage(data){
+    if(data.group_id === currentGroup) {
+        drawMessage(data);
+        messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+    }
+    // else {
+    //         if (!("Notification" in window)) {
+    //             console.log("This browser does not support desktop notification");
+    //         }
+    //
+    //         // Let's check whether notification permissions have already been granted
+    //         else if (Notification.permission === "granted") {
+    //             // If it's okay let's create a notification
+    //             var notification = new Notification(data.user + " : " + data.body);
+    //         }
+    //
+    //         else if (Notification.permission !== "denied") {
+    //             Notification.requestPermission().then(function (permission) {
+    //                 // If the user accepts, let's create a notification
+    //                 if (permission === "granted") {
+    //                     var notification = new Notification("Hi there!");
+    //                 }
+    //             });
+    //         }
+    // }
+}
 function sendMessage(recipient, body) {
     $.post('/api/v1/message/', {
         recipient: recipient,
@@ -194,7 +188,6 @@ function drawMessage(message) {
     we select the position and append it ti messages
     we get time stamp, and we put it in Date format in js
     */
-    console.log(message);
     let position = 'left';
     const date = new Date(message.timestamp);
     if (message.user === currentUser) position = 'right';
@@ -271,3 +264,83 @@ function enableInput() {
     chatInput.focus();
 }
 
+// function getMessage(message) {
+//     /*
+//
+//     important: we can send the message directly, but we can't
+//     specify the sender user and recipient
+//     code: from server will give us the message id and api give
+//     us {id,body(message),user(sender),recipient(receiver)}
+//     and after that we chck the user is in the chat box with the
+//     recipient, and we call the drawMessage function and same for
+//     recipient and if statement is wrong that means user is not
+//     in the chat, so we send him notification
+//
+//     */
+//     if(message.length === 2){
+//         $.getJSON(`/api/v1/message/${message}/`, function (data) {
+//             console.log(data);
+//         if (data.user === currentRecipient ||
+//             (data.recipient === currentRecipient && data.user === currentUser)) {
+//             drawMessage(data);
+//         }
+//         else if (data.recipient !== currentRecipient) {
+//
+//             if (!("Notification" in window)) {
+//                 console.log("This browser does not support desktop notification");
+//             }
+//
+//             // Let's check whether notification permissions have already been granted
+//             else if (Notification.permission === "granted") {
+//                 // If it's okay let's create a notification
+//                 var notification = new Notification(data['user'] + " : " + data['body']);
+//             }
+//
+//             else if (Notification.permission !== "denied") {
+//                 Notification.requestPermission().then(function (permission) {
+//                     // If the user accepts, let's create a notification
+//                     if (permission === "granted") {
+//                         var notification = new Notification("Hi there!");
+//                     }
+//                 });
+//             }
+//         }else {
+//             console.log("notification error from browser");
+//         }
+//     messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+//     });
+//
+//     }if(message.length ===6 ){
+//         if(message[0] === currentGroup) {
+//             const dictMessage = {
+//                 'body': message[1],
+//                 'timestamp': message[2],
+//                 'user': message[3],
+//                 'picture':message[4],
+//                 'avatar':message[5],
+//             }
+//             drawMessage(dictMessage);
+//             messageList.animate({scrollTop: messageList.prop('scrollHeight')});
+//         }else {
+//                 if (!("Notification" in window)) {
+//                     console.log("This browser does not support desktop notification");
+//                 }
+//
+//                 // Let's check whether notification permissions have already been granted
+//                 else if (Notification.permission === "granted") {
+//                     // If it's okay let's create a notification
+//                     var notification = new Notification(message[[3]] + " : " + message[1]);
+//                 }
+//
+//                 else if (Notification.permission !== "denied") {
+//                     Notification.requestPermission().then(function (permission) {
+//                         // If the user accepts, let's create a notification
+//                         if (permission === "granted") {
+//                             var notification = new Notification("Hi there!");
+//                         }
+//                     });
+//                 }
+//         }
+//     }
+//
+// }

@@ -103,14 +103,16 @@ class GroupMessage(models.Model):
         """
         notification = {
             "type": "send_message",
-            "message": [self.group.id,
-                        self.body,
-                        str(self.timestamp),
-                        self.user.username,
-                        str(self.picture),
-                        str(self.user.avatar)
-                        ],
+            "message": {
+                "state": "groupMessage",
+                "group_id": self.group.id,
+                "timestamp": str(self.timestamp),
+                "body": self.body,
+                "user": self.user.username,
+                "avatar": str(self.user.avatar.url),
+            }
         }
+
         channel_layer = get_channel_layer()
         users = self.group.users.all()
         for user in users:
@@ -153,11 +155,16 @@ class Message(models.Model):
         """
         notification = {
             "type": "send_message",
-            "message": str(self.id)
+            "message": {
+                "state": "message",
+                "body": self.body,
+                "timestamp": str(self.timestamp),
+                "recipient": self.recipient.username,
+                "user": self.user.username,
+                "avatar": str(self.user.avatar.url),
+            }
         }
         channel_layer = get_channel_layer()
-        print(f"user id: {self.user.id}")
-        print(f"recipient id: {self.recipient.id}")
 
         async_to_sync(channel_layer.group_send)(str(self.user.id), notification)
         async_to_sync(channel_layer.group_send)(str(self.recipient.id), notification)
