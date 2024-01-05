@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpRequest, JsonResponse
 from rest_framework.views import APIView
 
-from .models import Company, User, Phone, LoginVisit
+from .models import User, Phone, LoginVisit
 from django.utils import timezone
 from django.contrib.auth import login, logout
 from utils.utils import get_client_ip, phone_validator
@@ -16,7 +16,6 @@ from django.urls import reverse
 class SignUpView(View):
     """
 
-    0.company must exist
     1.username validation(in model save function)
     2.phone validation(in model save function )
     3.max size check for DB
@@ -32,16 +31,8 @@ class SignUpView(View):
         username: str = request.POST['username']
         name: str = request.POST['name']
         phone_no = request.POST['phone_no']
-        role = request.POST['role']
-        company = request.POST['company']
         try:
-            company = Company.objects.get(title__iexact=company)
-        except Company.DoesNotExist:
-            return JsonResponse({
-                "status": "company_not_found"
-            })
-        try:
-            user = User.objects.create(name=name, username=username, role=role, company=company)
+            user = User.objects.create(name=name, username=username)
         except ValidationError as e:
             return JsonResponse({
                 "status": e.message

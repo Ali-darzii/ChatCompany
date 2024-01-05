@@ -1,28 +1,26 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
-from django.http import Http404
 from django.utils import timezone
 from utils.utils import username_validator, phone_validator
-from django.db.models import SET_NULL
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.exceptions import ValidationError
 
 
-class Company(models.Model):
-    title = models.CharField(max_length=200, unique=True)
-    url = models.SlugField(unique=True)
-    city = models.CharField(max_length=80)
+# class Company(models.Model):
+#     title = models.CharField(max_length=200, unique=True)
+#     url = models.SlugField(unique=True)
+#     city = models.CharField(max_length=80)
 
-    def __str__(self):
-        return str(self.title)
-
-    class Meta:
-        db_table = "Company_DB"
-        verbose_name = "company"
-        verbose_name_plural = "companies"
+# def __str__(self):
+#     return str(self.title)
+#
+# class Meta:
+#     db_table = "Company_DB"
+#     verbose_name = "company"
+#     verbose_name_plural = "companies"
 
 
 class User(AbstractUser):
@@ -44,11 +42,11 @@ class User(AbstractUser):
         username_validator
     ])
     avatar = models.ImageField(upload_to="images/user_avatar", blank=True, null=True)
-    role = models.CharField(max_length=200)
     description = models.TextField(max_length=70, blank=True, null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="User_in_company")
+    # company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="User_in_company")
+    # role = models.CharField(max_length=200)
 
-    REQUIRED_FIELDS = ["name", "role", "company"]
+    REQUIRED_FIELDS = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -61,8 +59,6 @@ class User(AbstractUser):
 
             if not 3 <= len(self.name) <= 100 or self.name is None:
                 raise ValidationError('name_format')
-            if not 3 <= len(self.role) <= 200:
-                raise ValidationError('role_format')
             if self.description == '':
                 self.description = None
             if self.description is not None and not 1 <= len(self.description) <= 70:
@@ -77,12 +73,42 @@ class Groups(models.Model):
     description = models.CharField(max_length=65, null=True, blank=True)
     users = models.ManyToManyField(User, db_index=True, related_name="group_users")
     admin = models.ManyToManyField(User, related_name="group_admin")
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.id)
 
+    def notify_ws_clients(self):
+        """
+
+        Inform client there is new Group
+
+        """
+        a = self.title
+        notification = {
+            "type": "send_message",
+            "message": {
+                "state": "newGroup",
+                "group_id": self.id,
+                "title": self.title,
+                "avatar": str(self.avatar),
+            }
+        }
+
+        channel_layer = get_channel_layer()
+        users = self.users.all()
+        for user in users:
+            async_to_sync(channel_layer.group_send)(str(user.id), notification)
+
+    def save(self, *args, **kwargs):
+        new = self.id
+        super(Groups, self).save(*args, **kwargs)
+        if new is None:
+            self.notify_ws_clients()
+
     class Meta:
         db_table = "Groups_DB"
+        ordering = ("-timestamp",)
 
 
 class GroupMessage(models.Model):
@@ -101,6 +127,8 @@ class GroupMessage(models.Model):
         Inform client there is new message
 
         """
+        self.group.timestamp = self.timestamp
+        self.group.save()
         notification = {
             "type": "send_message",
             "message": {
@@ -109,7 +137,7 @@ class GroupMessage(models.Model):
                 "timestamp": str(self.timestamp),
                 "body": self.body,
                 "user": self.user.username,
-                "avatar": str(self.user.avatar.url),
+                "avatar": str(self.user.avatar),
             }
         }
 
@@ -120,8 +148,9 @@ class GroupMessage(models.Model):
 
     def save(self, *args, **kwargs):
         self.body = self.body.strip()
+        new = self.id
         super(GroupMessage, self).save(*args, **kwargs)
-        if self.id is not None:
+        if new is None:
             self.notify_ws_clients()
 
     class Meta:
@@ -129,15 +158,27 @@ class GroupMessage(models.Model):
         ordering = ('-timestamp',)
 
 
+class PrivateMessage(models.Model):
+    users = models.ManyToManyField(User, related_name="pv_user")
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.users.values('username')}"
+
+    class Meta:
+        db_table = "PrivateMessage_DB"
+        ordering = ('-timestamp',)
+
+
 class Message(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="from_user", db_index=True)
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_user", db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    Private_message = models.ForeignKey(PrivateMessage, on_delete=models.CASCADE, db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
     body = models.TextField()
     picture = models.ImageField(upload_to="images/message_picture", null=True, blank=True)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
     def characters(self):
         """
@@ -153,21 +194,24 @@ class Message(models.Model):
         Inform client there is new message
 
         """
+        self.Private_message.timestamp = self.timestamp
+        self.Private_message.save()
         notification = {
             "type": "send_message",
             "message": {
                 "state": "message",
                 "body": self.body,
                 "timestamp": str(self.timestamp),
-                "recipient": self.recipient.username,
                 "user": self.user.username,
-                "avatar": str(self.user.avatar.url),
+                "PvChat": self.Private_message.id,
+                "avatar": str(self.user.avatar),
+                "picture": str(self.picture),
             }
         }
         channel_layer = get_channel_layer()
-
+        recipient = self.Private_message.users.all().exclude(id=self.user.id).first()
         async_to_sync(channel_layer.group_send)(str(self.user.id), notification)
-        async_to_sync(channel_layer.group_send)(str(self.recipient.id), notification)
+        async_to_sync(channel_layer.group_send)(str(recipient.id), notification)
 
     def save(self, *args, **kwargs):
         """

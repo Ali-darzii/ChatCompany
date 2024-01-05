@@ -2,13 +2,13 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 
-from .api import (UserViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView, SetAuthTokenAPI, AuthTokenCheckAPI,
+from .api import (PrivateMessageViewSet, MessageViewSet, GroupsApiView, GroupMessagesApiView, SetAuthTokenAPI, AuthTokenCheckAPI,
                   MakeGroupAPI)
 
 router = DefaultRouter()
 
 router.register(r'message', MessageViewSet, basename='message-api')
-router.register(r'user', UserViewSet, basename='user-api')
+router.register(r'user', PrivateMessageViewSet, basename='user-api')
 
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),

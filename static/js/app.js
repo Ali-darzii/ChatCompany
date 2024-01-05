@@ -5,7 +5,7 @@ let chatButton = $('#btn-send');
 let clipButton = $('#clip-input');
 let userList = $('#user-list');
 let messageList = $('#messages');
-
+let pvChat = '';
 $(document).ready(function () {
     updateUserList();
     updateGroupList();
@@ -25,8 +25,8 @@ $(document).ready(function () {
 
     chatButton.click(function () {
         if (chatInput.val().length > 0) {
-            if(currentRecipient !== ''){
-                sendMessage(currentRecipient, chatInput.val());
+            if(pvChat !== ''){
+                sendMessage(chatInput.val(),pvChat);
             }else {
                 sendGroupMessage(currentGroup, chatInput.val());
             }
@@ -35,11 +35,14 @@ $(document).ready(function () {
         }
     });
     socket.onmessage = function (e) {
+        console.log('werwww');
         const data = JSON.parse(e.data).message;
         if (data.state === 'message'){
             getMessage(data);
         }else if (data.state === 'groupMessage'){
             getGroupMessage(data);
+        }else if (data.state === 'newGroup'){
+            newGroup(data);
         }
 
 
@@ -60,34 +63,27 @@ function updateUserList() {
 
     $.getJSON('api/v1/user/', function (data) {
         userList.children('.user').remove();
+
         for (let i = 0; i < data.length; i++) {
-            const userItem = `<a class="list-group-item user">${data[i]['username']}</a>`;
+
+            const userItem = `<a onclick="userClick(this,${data[i]['id']})" class="list-group-item user">${data[i]['users'][0].username}</a>`;
             $(userItem).appendTo('#user-list');
         }
-        $('.user').click(function () {
-            userList.children('.active').removeClass('active');
-            let selected = event.target;
-            $(selected).addClass('active');
-            currentGroup = '';
-            setCurrentRecipient(selected.text);
-
-        });
     });
 
 
 }
 
-function setCurrentRecipient(username) {
-    /*
-    submit who is recipient to go fetch message data,
-    and we use it in drawMessage
-    */
 
-    currentRecipient = username;
-    getConversation(currentRecipient);
+
+function userClick(clicked, id){
+    userList.children('.active').removeClass('active');
+    clicked.classList.add('active');
+    currentGroup = '';
+    pvChat = id;
+    getConversation(id);
     enableInput();
 }
-
 
 function getMessage(data){
         /*
@@ -102,11 +98,11 @@ function getMessage(data){
     in the chat, so we send him notification
 
     */
-     if (data.user === currentRecipient ||
-            (data.recipient === currentRecipient && data.user === currentUser)) {
+
+     if (data.PvChat === pvChat) {
             drawMessage(data);
         }
-        else if (data.recipient !== currentRecipient) {
+        else if (data.user !== currentUser){
 
             if (!("Notification" in window)) {
                 console.log("This browser does not support desktop notification");
@@ -157,22 +153,22 @@ function getGroupMessage(data){
             }
     }
 }
-function sendMessage(recipient, body) {
+function sendMessage(body, pv_chat) {
     $.post('/api/v1/message/', {
-        recipient: recipient,
+        pv_chat: pv_chat,
         body: body
     }).fail(function () {
         alert('Error! Check console!');
     });
 }
-function getConversation(recipient) {
+function getConversation(PvId) {
     /*
     get api to fetch get old messages
     delete all messages for page refresh(duplicate)
     for any messages we send it to drawMessage function
 
     */
-    $.getJSON(`/api/v1/message/?target=${recipient}`, function (data) {
+    $.getJSON(`/api/v1/message/?target=${PvId}`, function (data) {
         messageList.children('.message').remove();
         for (let i = data['results'].length - 1; i >= 0; i--) {
             drawMessage(data['results'][i]);
@@ -191,6 +187,7 @@ function drawMessage(message) {
     let position = 'left';
     const date = new Date(message.timestamp);
     if (message.user === currentUser) position = 'right';
+
     const messageItem = `
             <li class="message ${position}">
                 <div class="avatar">${message.user}</div>
@@ -219,6 +216,7 @@ function groupClick(clicked,id){
     userList.children('.active').removeClass('active');
     clicked.classList.add('active');
     currentRecipient = '';
+    pvChat = '';
     currentGroup = id;
     getGroupConversation();
     enableInput();
@@ -244,7 +242,11 @@ function sendGroupMessage(group,body){
     });
 }
 
-
+function newGroup(data){
+    console.log('qwer')
+    const newGroup = `<a onclick="groupClick(this,${data.id})" class="list-group-item group">${data.title}</a>`
+    userList.prepend(newGroup)
+}
 
 // Universal
 function disableInput() {
@@ -263,84 +265,3 @@ function enableInput() {
     clipButton.prop('disabled', false);
     chatInput.focus();
 }
-
-// function getMessage(message) {
-//     /*
-//
-//     important: we can send the message directly, but we can't
-//     specify the sender user and recipient
-//     code: from server will give us the message id and api give
-//     us {id,body(message),user(sender),recipient(receiver)}
-//     and after that we chck the user is in the chat box with the
-//     recipient, and we call the drawMessage function and same for
-//     recipient and if statement is wrong that means user is not
-//     in the chat, so we send him notification
-//
-//     */
-//     if(message.length === 2){
-//         $.getJSON(`/api/v1/message/${message}/`, function (data) {
-//             console.log(data);
-//         if (data.user === currentRecipient ||
-//             (data.recipient === currentRecipient && data.user === currentUser)) {
-//             drawMessage(data);
-//         }
-//         else if (data.recipient !== currentRecipient) {
-//
-//             if (!("Notification" in window)) {
-//                 console.log("This browser does not support desktop notification");
-//             }
-//
-//             // Let's check whether notification permissions have already been granted
-//             else if (Notification.permission === "granted") {
-//                 // If it's okay let's create a notification
-//                 var notification = new Notification(data['user'] + " : " + data['body']);
-//             }
-//
-//             else if (Notification.permission !== "denied") {
-//                 Notification.requestPermission().then(function (permission) {
-//                     // If the user accepts, let's create a notification
-//                     if (permission === "granted") {
-//                         var notification = new Notification("Hi there!");
-//                     }
-//                 });
-//             }
-//         }else {
-//             console.log("notification error from browser");
-//         }
-//     messageList.animate({scrollTop: messageList.prop('scrollHeight')});
-//     });
-//
-//     }if(message.length ===6 ){
-//         if(message[0] === currentGroup) {
-//             const dictMessage = {
-//                 'body': message[1],
-//                 'timestamp': message[2],
-//                 'user': message[3],
-//                 'picture':message[4],
-//                 'avatar':message[5],
-//             }
-//             drawMessage(dictMessage);
-//             messageList.animate({scrollTop: messageList.prop('scrollHeight')});
-//         }else {
-//                 if (!("Notification" in window)) {
-//                     console.log("This browser does not support desktop notification");
-//                 }
-//
-//                 // Let's check whether notification permissions have already been granted
-//                 else if (Notification.permission === "granted") {
-//                     // If it's okay let's create a notification
-//                     var notification = new Notification(message[[3]] + " : " + message[1]);
-//                 }
-//
-//                 else if (Notification.permission !== "denied") {
-//                     Notification.requestPermission().then(function (permission) {
-//                         // If the user accepts, let's create a notification
-//                         if (permission === "granted") {
-//                             var notification = new Notification("Hi there!");
-//                         }
-//                     });
-//                 }
-//         }
-//     }
-//
-// }

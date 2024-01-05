@@ -2,19 +2,19 @@ from datetime import timedelta
 from django.contrib.auth import login
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import HttpRequest, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from utils.utils import phone_validator, get_client_ip
-from .models import User, Message, GroupMessage, Phone, LoginVisit, Groups
+from .models import User, Message, GroupMessage, Phone, LoginVisit, Groups, PrivateMessage
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import SessionAuthentication
 from ChatCompany import settings
-from chat.serializers import MessageSerializer, UserSerializer, GroupsSerializer, GroupMessageSerializer
+from chat.serializers import MessageSerializer, UserSerializer, GroupsSerializer, GroupMessageSerializer, TestSerializer
 from rest_framework import status
 
 
@@ -48,24 +48,26 @@ class MessageViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         target = self.request.query_params.get("target", None)
         if target is not None:
-            self.queryset = self.queryset.filter(
-                Q(user=request.user, recipient__username=target) | Q(user__username=target, recipient=request.user))
-
+            self.queryset = self.queryset.filter(Private_message=target)
         return super(MessageViewSet, self).list(request, *args, **kwargs)
 
 
-class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+class PrivateMessageViewSet(ModelViewSet):
+    queryset = PrivateMessage.objects.all()
+    serializer_class = TestSerializer
     authentication_classes = [CsrfExemptSessionAuthentication]
     allowed_methods = ["GET", "HEAD", "OPTIONS"]
     pagination_class = None
 
     def list(self, request, *args, **kwargs):
         user: User = get_object_or_404(User, pk=request.user.id)
-        self.queryset = self.queryset.filter(company_id=user.company_id)
-        self.queryset = self.queryset.exclude(pk=user.id).distinct()
-        return super(UserViewSet, self).list(request, *args, **kwargs)
+        self.queryset = self.queryset.filter(users__id=user.id)
+        return super(PrivateMessageViewSet, self).list(request, *args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super(PrivateMessageViewSet, self).get_serializer_context()
+        context["username"] = self.request.user.username
+        return context
 
 
 class GroupsApiView(APIView):
@@ -95,8 +97,7 @@ class GroupMessagesApiView(APIView):
         group_id = request.POST.get("group", None)
         GroupMessage.objects.create(body=body, group_id=group_id, user_id=self.request.user.id)
         # messages = GroupMessageSerializer(group_message, many=True)
-        return Response("Created successfully", status.HTTP_201_CREATED)
-
+        return Response("Created successfully", status.HTTP_201_CREATED,)
 
 class SetAuthTokenAPI(APIView):
 
@@ -200,7 +201,9 @@ class MakeGroupAPI(APIView):
         avatar = request.FILES.get('avatar')
         title = request.POST.get('title')
         description = request.POST.get('description')
-        users = request.POST['users']
-
+        users = list(request.POST['users'])
         group = Groups.objects.create(avatar=avatar, title=title, description=description)
-        group.users.add()
+
+        for user in users:
+            user = User.objects.get(username=user)
+            group.users.add(user)
