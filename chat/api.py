@@ -1,4 +1,7 @@
 from datetime import timedelta
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth import login
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -97,7 +100,8 @@ class GroupMessagesApiView(APIView):
         group_id = request.POST.get("group", None)
         GroupMessage.objects.create(body=body, group_id=group_id, user_id=self.request.user.id)
         # messages = GroupMessageSerializer(group_message, many=True)
-        return Response("Created successfully", status.HTTP_201_CREATED,)
+        return Response("Created successfully", status.HTTP_201_CREATED, )
+
 
 class SetAuthTokenAPI(APIView):
 
@@ -203,7 +207,37 @@ class MakeGroupAPI(APIView):
         description = request.POST.get('description')
         users = list(request.POST['users'])
         group = Groups.objects.create(avatar=avatar, title=title, description=description)
-
         for user in users:
             user = User.objects.get(username=user)
             group.users.add(user)
+        notification = {
+            "type": "send_message",
+            "message": {
+                "state": "newGroup",
+                "group_id": group.id,
+                "title": group.title,
+                "avatar": str(group.avatar),
+            }
+        }
+
+        channel_layer = get_channel_layer()
+        users = group.users.all().exclude(id=request.user.id)
+        for user in users:
+            async_to_sync(channel_layer.group_send)(str(user.id), notification)
+
+
+
+
+class MessageSeenAPI(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: HttpRequest):
+        pv_chat = request.POST.get('pvChat', None)
+        if pv_chat is not None:
+            messages = Message.objects.filter(Private_message_id=pv_chat)
+            for message in messages:
+                message.is_seen = True
+            messages.save()
+            Response("success", status=201)
+        raise Http404

@@ -79,26 +79,11 @@ class Groups(models.Model):
         return str(self.id)
 
     def notify_ws_clients(self):
-        """
+        """/home/ali
 
         Inform client there is new Group
 
         """
-        a = self.title
-        notification = {
-            "type": "send_message",
-            "message": {
-                "state": "newGroup",
-                "group_id": self.id,
-                "title": self.title,
-                "avatar": str(self.avatar),
-            }
-        }
-
-        channel_layer = get_channel_layer()
-        users = self.users.all()
-        for user in users:
-            async_to_sync(channel_layer.group_send)(str(user.id), notification)
 
     def save(self, *args, **kwargs):
         new = self.id
@@ -176,6 +161,7 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
     body = models.TextField()
     picture = models.ImageField(upload_to="images/message_picture", null=True, blank=True)
+    is_seen = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.id)

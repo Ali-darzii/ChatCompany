@@ -101,6 +101,14 @@ function getMessage(data){
 
      if (data.PvChat === pvChat) {
             drawMessage(data);
+            $.post('/api/v1/Group-message/', {
+            pvChat:pvChat ,
+            body: body
+            }).fail(function () {
+            alert('Error! Check console!');
+            });
+
+
         }
         else if (data.user !== currentUser){
 
